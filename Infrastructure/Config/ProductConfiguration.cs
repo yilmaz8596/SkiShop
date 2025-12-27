@@ -12,7 +12,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Price).HasColumnType("decimal(18,2)");
         builder.Property(p => p.Name).IsRequired().HasMaxLength(100);
         builder.Property(p => p.Description).HasMaxLength(500);
-        builder.Property(p => p.Picture).IsRequired();
+        builder.Property(p => p.PictureUrl).IsRequired();
         builder.Property(p => p.Type).IsRequired().HasMaxLength(50);
         builder.Property(p => p.Brand).IsRequired().HasMaxLength(50);
     }

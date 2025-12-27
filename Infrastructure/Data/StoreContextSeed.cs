@@ -1,0 +1,21 @@
+using System;
+using Core.Entities;
+
+
+namespace Infrastructure.Data;
+
+public class StoreContextSeed
+{
+    public static async Task SeedAsync(StoreContext context)
+    {
+        if (context.Products.Any()) return;
+
+        var productsData = await File.ReadAllTextAsync("../Infrastructure/Data/SeedData/products.json");
+        var products = System.Text.Json.JsonSerializer.Deserialize<List<Product>>(productsData);
+
+        if (products == null || !products.Any()) return;
+
+        context.Products.AddRange(products);
+        await context.SaveChangesAsync();
+    }
+}

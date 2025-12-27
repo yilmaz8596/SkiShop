@@ -1,8 +1,9 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Core.Interfaces;
+
 
 namespace Infrastructure;
 
@@ -16,6 +17,8 @@ public static class DependencyInjection
         {
             options.UseSqlServer(connectionString);
         });
+
+        services.AddScoped<IProductsRepository, ProductsRepository>();
         return services;
     }
 }
