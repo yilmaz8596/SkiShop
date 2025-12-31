@@ -19,6 +19,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IProductsRepository, ProductsRepository>();
+        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         return services;
     }
 }

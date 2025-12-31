@@ -1,28 +1,30 @@
-using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Core.Entities;
 using Core.Interfaces;
+using Core.Specifications;
+using Core.Entities;
 
 namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(IProductsRepository productsRepository) : ControllerBase
+    public class ProductsController(IGenericRepository<Product> productsRepository) : ControllerBase
     {
-        private readonly IProductsRepository _productsRepository = productsRepository;
+        private readonly IGenericRepository<Product> _productsRepository = productsRepository;
 
         [HttpGet]
         public async Task<IActionResult> GetProducts(string? brand, string? type, string? sort)
         {
-            return Ok(await _productsRepository.GetProductsAsync(brand, type, sort));
+            var spec = new ProductSpecification(brand, type, sort);
+
+            var products = await _productsRepository.ListAsync(spec);
+            return Ok(products);
         }
 
         [HttpGet("{id:int}")]
 
         public async Task<IActionResult> GetProduct(int id)
         {
-            var product = await _productsRepository.GetProductByIdAsync(id);
+            var product = await _productsRepository.GetByIdAsync(id);
             if (product == null)
                 return NotFound();
             return Ok(product);
@@ -32,8 +34,8 @@ namespace API.Controllers
 
         public async Task<IActionResult> CreateProduct([FromBody] Product product)
         {
-            _productsRepository.AddProduct(product);
-            await _productsRepository.SaveChangesAsync();
+            _productsRepository.Add(product);
+            await _productsRepository.SaveAllAsync();
 
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
@@ -44,10 +46,10 @@ namespace API.Controllers
             if (id != product.Id)
                 return BadRequest();
 
-            if (!_productsRepository.ProductExists(id))
+            if (!_productsRepository.Exists(id))
                 return NotFound();
-            _productsRepository.UpdateProduct(product);
-            if (!await _productsRepository.SaveChangesAsync())
+            _productsRepository.Update(product);
+            if (!await _productsRepository.SaveAllAsync())
                 return StatusCode(500, "A problem happened while handling your request.");
             return NoContent();
         }
@@ -55,12 +57,12 @@ namespace API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = await _productsRepository.GetProductByIdAsync(id);
+            var product = await _productsRepository.GetByIdAsync(id);
             if (product == null)
                 return NotFound();
 
-            _productsRepository.DeleteProduct(product);
-            if (!await _productsRepository.SaveChangesAsync())
+            _productsRepository.Remove(product);
+            if (!await _productsRepository.SaveAllAsync())
                 return StatusCode(500, "A problem happened while handling your request.");
             return NoContent();
         }
@@ -68,14 +70,16 @@ namespace API.Controllers
         [HttpGet("brands")]
         public async Task<ActionResult<IReadOnlyList<string>>> GetBrands()
         {
-            var brands = await _productsRepository.GetBrandsAsync();
+            var spec = new BrandListSpecification();
+            var brands = await _productsRepository.ListAsync(spec);
             return Ok(brands);
         }
 
         [HttpGet("types")]
         public async Task<ActionResult<IReadOnlyList<string>>> GetTypes()
         {
-            var types = await _productsRepository.GetTypesAsync();
+            var spec = new TypeListSpecification();
+            var types = await _productsRepository.ListAsync(spec);
             return Ok(types);
         }
     }
