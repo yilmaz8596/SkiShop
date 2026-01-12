@@ -44,11 +44,11 @@ public class ProductsRepository(StoreContext context) : IProductsRepository
             {
                 "priceasc" => query.OrderBy(p => p.Price),
                 "pricedesc" => query.OrderByDescending(p => p.Price),
-                _ => query
+                _ => query.OrderBy(p => p.Name)
             };
         }
 
-        return await query.ToListAsync();
+        return await query.Skip(5).Take(5).ToListAsync();
     }
 
     public bool ProductExists(int id)

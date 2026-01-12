@@ -2,22 +2,20 @@ using Microsoft.AspNetCore.Mvc;
 using Core.Interfaces;
 using Core.Specifications;
 using Core.Entities;
+using API.RequestHelpers;
 
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductsController(IGenericRepository<Product> productsRepository) : ControllerBase
+    public class ProductsController(IGenericRepository<Product> productsRepository) : BaseAPIController
     {
         private readonly IGenericRepository<Product> _productsRepository = productsRepository;
 
         [HttpGet]
-        public async Task<IActionResult> GetProducts(string? brand, string? type, string? sort)
+        public async Task<IActionResult> GetProducts([FromQuery] ProductSpecParams specParams)
         {
-            var spec = new ProductSpecification(brand, type, sort);
+            var spec = new ProductSpecification(specParams);
 
-            var products = await _productsRepository.ListAsync(spec);
-            return Ok(products);
+            return await CreatePageResult(_productsRepository, spec, specParams.PageIndex, specParams.PageSize);
         }
 
         [HttpGet("{id:int}")]
